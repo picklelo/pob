@@ -21,6 +21,7 @@ class PoetryState(rx.State):
 
     database_id: str = "6e09b54e-712e-495a-8dd9-835da66b0e40"
     poems: list[Poem] = []
+    preamble_poem: Optional[Poem] = None
     is_loading: bool = True
     error_message: str = ""
     selected_poem: Optional[Poem] = None
@@ -31,6 +32,41 @@ class PoetryState(rx.State):
     favorite_ids: list[str] = []
     reading_mode: bool = False
     idle: bool = False
+
+    @rx.var
+    def _sorted_poems(self) -> list[Poem]:
+        """Returns poems sorted by date, which is the base for navigation."""
+        return sorted(self.poems, key=lambda p: p.get("date", ""), reverse=True)
+
+    @rx.var
+    def current_poem_index(self) -> int:
+        """Returns the index of the currently selected poem in the date-sorted list."""
+        if not self.selected_poem:
+            return -1
+        try:
+            return self._sorted_poems.index(self.selected_poem)
+        except ValueError as e:
+            logging.exception(f"Error finding poem index: {e}")
+            return -1
+
+    @rx.var
+    def prev_poem(self) -> Optional[Poem]:
+        """Returns the previous poem in the date-sorted list."""
+        if self.current_poem_index > 0:
+            return self._sorted_poems[self.current_poem_index - 1]
+        return None
+
+    @rx.var
+    def next_poem(self) -> Optional[Poem]:
+        """Returns the next poem in the date-sorted list."""
+        if 0 <= self.current_poem_index < len(self._sorted_poems) - 1:
+            return self._sorted_poems[self.current_poem_index + 1]
+        return None
+
+    @rx.var
+    def total_poem_count(self) -> int:
+        """Returns the total number of poems."""
+        return len(self._sorted_poems)
 
     @rx.event
     def share_poem(self) -> rx.event.EventSpec:
@@ -78,7 +114,11 @@ class PoetryState(rx.State):
     @rx.var
     def filtered_poems(self) -> list[Poem]:
         """Returns a list of poems filtered by search term and sorted."""
-        poems_to_filter = self.poems
+        poems_to_filter = [
+            p
+            for p in self.poems
+            if not (self.preamble_poem and p["id"] == self.preamble_poem["id"])
+        ]
         if self.search_term:
             search_lower = self.search_term.lower()
             poems_to_filter = [
@@ -127,8 +167,14 @@ class PoetryState(rx.State):
                 self._process_page(notion, page) for page in db_query.get("results", [])
             ]
             processed_poems = await asyncio.gather(*tasks)
+            processed_poems = [p for p in processed_poems if p]
+            preamble = next(
+                (p for p in processed_poems if p["title"].lower() == "lost"), None
+            )
             async with self:
-                self.poems = [poem for poem in processed_poems if poem]
+                self.poems = processed_poems
+                if preamble:
+                    self.preamble_poem = preamble
                 self.is_loading = False
         except Exception as e:
             logging.exception(f"Failed to fetch poems: {e}")
@@ -159,7 +205,12 @@ class PoetryState(rx.State):
             if not self.poems:
                 await self.fetch_poems()
             async with self:
-                poem_data = next((p for p in self.poems if p["id"] == poem_id), None)
+                if self.preamble_poem and self.preamble_poem["id"] == poem_id:
+                    poem_data = self.preamble_poem
+                else:
+                    poem_data = next(
+                        (p for p in self.poems if p["id"] == poem_id), None
+                    )
             if not poem_data:
                 async with self:
                     self.error_message = "Poem not found."

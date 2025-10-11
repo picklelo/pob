@@ -1,6 +1,6 @@
 import reflex as rx
 from app.state import PoetryState
-from app.components import poetry_grid, filter_controls
+from app.components import poetry_grid, filter_controls, preamble_card, app_footer
 import asyncio
 
 
@@ -24,7 +24,7 @@ def poem_detail_page() -> rx.Component:
                             rx.icon("arrow-left", size=16, class_name="mr-2"),
                             "Back to Collection",
                             href="/",
-                            class_name="flex items-center text-[#B7926F] font-['Inter'] mb-8 transition-opacity hover:opacity-80",
+                            class_name="flex items-center text-[#B7926F] font-['Inter'] transition-opacity hover:opacity-80",
                         ),
                         rx.el.button(
                             rx.icon("book-open", size=16),
@@ -32,12 +32,12 @@ def poem_detail_page() -> rx.Component:
                             class_name="p-2 rounded-md hover:bg-white/10 transition-colors",
                             color_scheme="none",
                         ),
-                        class_name="flex items-center justify-between",
+                        class_name="flex items-center justify-between w-full max-w-3xl px-8 md:px-12",
                     ),
                     class_name=rx.cond(
                         PoetryState.reading_mode,
-                        "opacity-0 transition-opacity",
-                        "opacity-100 transition-opacity",
+                        "opacity-0 transition-opacity fixed top-8 left-1/2 -translate-x-1/2 z-10 w-full",
+                        "opacity-100 transition-opacity w-full",
                     ),
                 ),
                 rx.cond(
@@ -64,7 +64,7 @@ def poem_detail_page() -> rx.Component:
                         rx.el.div(
                             class_name="h-5 w-2/3 bg-gray-800 rounded-lg animate-pulse mb-3"
                         ),
-                        class_name="w-full poem-fade-in",
+                        class_name="w-full poem-fade-in max-w-3xl p-8 md:p-12",
                     ),
                     rx.cond(
                         PoetryState.error_message != "",
@@ -132,14 +132,18 @@ def poem_detail_page() -> rx.Component:
                             ),
                             rx.el.p(
                                 PoetryState.selected_poem["date"],
-                                class_name="text-md text-gray-500 mb-12 font-['Inter']",
+                                class_name=rx.cond(
+                                    PoetryState.reading_mode,
+                                    "opacity-0 transition-opacity text-md text-gray-500 mb-12 font-['Inter']",
+                                    "opacity-100 transition-opacity text-md text-gray-500 mb-12 font-['Inter']",
+                                ),
                             ),
                             rx.el.div(
                                 rx.foreach(
                                     PoetryState.selected_poem["content"],
                                     lambda line: rx.el.p(
                                         line,
-                                        class_name="text-lg text-[#F3F1EE]/80 font-['Inter']",
+                                        class_name="text-xl text-[#F3F1EE]/80 font-['Inter']",
                                         style={"lineHeight": 1.8},
                                     ),
                                 ),
@@ -148,10 +152,54 @@ def poem_detail_page() -> rx.Component:
                         ),
                     ),
                 ),
-                class_name="bg-black/10 backdrop-blur-md border border-white/5 rounded-2xl p-8 md:p-12 w-full max-w-3xl transition-all duration-500",
+                class_name="p-8 md:p-12 w-full max-w-3xl transition-all duration-500",
                 id="poem-content",
             ),
-            class_name="w-full min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8",
+            rx.el.div(
+                rx.cond(
+                    PoetryState.prev_poem,
+                    rx.link(
+                        rx.icon("arrow-left", size=16, class_name="mr-2"),
+                        rx.el.span("Previous: "),
+                        rx.el.span(
+                            PoetryState.prev_poem["title"],
+                            class_name="font-['Fraunces']",
+                        ),
+                        href=f"/poem/{PoetryState.prev_poem['id']}",
+                        class_name="flex items-center text-gray-400 hover:text-[#B7926F] transition-colors duration-300",
+                    ),
+                    rx.el.div(),
+                ),
+                rx.el.p(
+                    f"{PoetryState.current_poem_index + 1} of {PoetryState.total_poem_count}",
+                    class_name="text-gray-500 font-['Inter'] text-sm",
+                ),
+                rx.cond(
+                    PoetryState.next_poem,
+                    rx.link(
+                        rx.el.span(
+                            PoetryState.next_poem["title"],
+                            class_name="font-['Fraunces']",
+                        ),
+                        rx.el.span(" :Next"),
+                        rx.icon("arrow-right", size=16, class_name="ml-2"),
+                        href=f"/poem/{PoetryState.next_poem['id']}",
+                        class_name="flex items-center text-gray-400 hover:text-[#B7926F] transition-colors duration-300",
+                    ),
+                    rx.el.div(),
+                ),
+                class_name=rx.cond(
+                    PoetryState.reading_mode,
+                    "opacity-0 transition-opacity flex justify-between items-center w-full max-w-3xl mt-8 px-4",
+                    "opacity-100 transition-opacity flex justify-between items-center w-full max-w-3xl mt-8 px-4",
+                ),
+            ),
+            app_footer(),
+            class_name=rx.cond(
+                PoetryState.reading_mode,
+                "w-full min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 md:p-8",
+                "w-full min-h-screen flex flex-col items-center justify-start pt-24 p-4 sm:p-6 md:p-8",
+            ),
         ),
         on_mount=[
             PoetryState.fetch_poem_content,
@@ -185,9 +233,15 @@ def index() -> rx.Component:
                     ),
                     class_name="text-center mb-12 poem-fade-in",
                 ),
-                rx.el.div(filter_controls(), poetry_grid(), class_name="space-y-6"),
+                rx.cond(
+                    PoetryState.preamble_poem, preamble_card(PoetryState.preamble_poem)
+                ),
+                rx.el.div(
+                    filter_controls(), poetry_grid(), class_name="space-y-6 mt-12"
+                ),
                 class_name="max-w-3xl mx-auto w-full",
             ),
+            app_footer(),
             on_mount=[PoetryState.fetch_poems, PoetryState.load_favorites],
             class_name="min-h-screen text-[#F3F1EE] flex flex-col items-center p-4 sm:p-6 md:py-12",
         ),

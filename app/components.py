@@ -2,6 +2,17 @@ import reflex as rx
 from app.state import PoetryState, Poem
 
 
+def app_footer() -> rx.Component:
+    """A shared footer for all pages."""
+    return rx.el.footer(
+        rx.el.p(
+            "© Nikhil Rao — The Privilege of Boredom.",
+            class_name="font-['Inter'] text-center text-sm text-gray-500/50 py-12",
+        ),
+        class_name="w-full flex-shrink-0",
+    )
+
+
 def filter_controls() -> rx.Component:
     """Controls for searching and sorting poems."""
     return rx.el.div(
@@ -37,6 +48,28 @@ def filter_controls() -> rx.Component:
             class_name="relative",
         ),
         class_name="flex flex-col md:flex-row gap-4 mb-8",
+    )
+
+
+def preamble_card(poem: Poem) -> rx.Component:
+    """A special card for the preamble poem."""
+    return rx.el.a(
+        rx.el.h2(
+            poem["title"],
+            class_name="text-3xl font-['Fraunces'] text-[#F3F1EE] group-hover:text-[#B7926F] transition-colors duration-300",
+            style={"textShadow": "0 2px 20px rgba(183, 146, 111, 0.4)"},
+        ),
+        rx.el.p(
+            "preamble",
+            class_name="text-md italic text-gray-500 mt-2 font-['Inter'] group-hover:text-[#B7926F]/80 transition-colors duration-300",
+        ),
+        rx.el.p(
+            poem["excerpt"],
+            class_name="text-gray-400 mt-4 font-['Inter'] leading-relaxed text-center",
+        ),
+        href=f"/poem/{poem['id']}",
+        class_name="w-full flex flex-col items-center text-center p-8 bg-black/10 rounded-2xl transition-all duration-300 ease-in-out group hover:bg-black/20 preamble-fade-in mb-8",
+        style={"boxShadow": "0 0 40px rgba(183, 146, 111, 0.1)"},
     )
 
 
