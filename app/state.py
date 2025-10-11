@@ -74,47 +74,9 @@ class PoetryState(rx.State):
         return len(self._sorted_poems)
 
     @rx.event
-    def share_poem(self) -> rx.event.EventSpec:
-        """Exports the current poem's content to a text file for sharing."""
-        if self.selected_poem:
-            title = self.selected_poem["title"].replace(" ", "_")
-            content = """
-""".join(self.selected_poem["content"])
-            return rx.download(data=content, filename=f"{title}.txt")
-        return rx.noop()
-
-    @rx.var
-    def is_favorite(self) -> bool:
-        """Check if the selected poem is in the favorites list."""
-        if self.selected_poem:
-            return self.selected_poem["id"] in self.favorite_ids
-        return False
-
-    @rx.event
-    def toggle_favorite(self, poem_id: str):
-        """Toggle the favorite status of a poem."""
-        if poem_id in self.favorite_ids:
-            self.favorite_ids.remove(poem_id)
-        else:
-            self.favorite_ids.append(poem_id)
-        return self._save_favorites()
-
-    @rx.event
-    def load_favorites(self):
-        """Load favorite poem IDs from local storage."""
-        return rx.call_script(
-            "localStorage.getItem('favorite_ids')", callback=self._on_favorites_loaded
-        )
-
-    def _on_favorites_loaded(self, stored_ids: str):
-        if stored_ids:
-            self.favorite_ids = json.loads(stored_ids)
-
-    def _save_favorites(self):
-        """Save favorite IDs to local storage."""
-        return rx.call_script(
-            f"localStorage.setItem('favorite_ids', '{json.dumps(self.favorite_ids)}')"
-        )
+    def go_to_poem(self, poem_id: str):
+        """Navigate to a specific poem page."""
+        return rx.redirect(f"/poem/{poem_id}")
 
     @rx.var
     def filtered_poems(self) -> list[Poem]:

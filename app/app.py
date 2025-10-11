@@ -85,37 +85,7 @@ def poem_detail_page() -> rx.Component:
                             class_name="flex flex-col items-center justify-center bg-red-900/20 border border-red-500/30 p-12 rounded-2xl",
                         ),
                         rx.el.div(
-                            rx.el.div(
-                                rx.el.button(
-                                    rx.icon(
-                                        "star",
-                                        size=18,
-                                        class_name=rx.cond(
-                                            PoetryState.is_favorite,
-                                            "fill-[#B7926F] text-[#B7926F]",
-                                            "text-gray-500",
-                                        ),
-                                    ),
-                                    "Favorite",
-                                    on_click=lambda: PoetryState.toggle_favorite(
-                                        PoetryState.selected_poem["id"]
-                                    ),
-                                    class_name="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 transition-colors text-gray-300 text-sm font-['Inter']",
-                                ),
-                                rx.el.button(
-                                    rx.icon(
-                                        "share-2", size=18, class_name="text-gray-400"
-                                    ),
-                                    "Share",
-                                    on_click=PoetryState.share_poem,
-                                    class_name="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 transition-colors text-gray-300 text-sm font-['Inter']",
-                                ),
-                                class_name=rx.cond(
-                                    PoetryState.reading_mode,
-                                    "opacity-0 transition-opacity flex items-center gap-4 mb-8",
-                                    "opacity-100 transition-opacity flex items-center gap-4 mb-8",
-                                ),
-                            ),
+                            rx.el.div(class_name="h-12"),
                             rx.cond(
                                 PoetryState.selected_poem["image_url"],
                                 rx.image(
@@ -158,14 +128,16 @@ def poem_detail_page() -> rx.Component:
             rx.el.div(
                 rx.cond(
                     PoetryState.prev_poem,
-                    rx.link(
+                    rx.el.button(
                         rx.icon("arrow-left", size=16, class_name="mr-2"),
                         rx.el.span("Previous: "),
                         rx.el.span(
                             PoetryState.prev_poem["title"],
                             class_name="font-['Fraunces']",
                         ),
-                        href=f"/poem/{PoetryState.prev_poem['id']}",
+                        on_click=lambda: PoetryState.go_to_poem(
+                            PoetryState.prev_poem["id"]
+                        ),
                         class_name="flex items-center text-gray-400 hover:text-[#B7926F] transition-colors duration-300",
                     ),
                     rx.el.div(),
@@ -176,14 +148,16 @@ def poem_detail_page() -> rx.Component:
                 ),
                 rx.cond(
                     PoetryState.next_poem,
-                    rx.link(
+                    rx.el.button(
                         rx.el.span(
                             PoetryState.next_poem["title"],
                             class_name="font-['Fraunces']",
                         ),
                         rx.el.span(" :Next"),
                         rx.icon("arrow-right", size=16, class_name="ml-2"),
-                        href=f"/poem/{PoetryState.next_poem['id']}",
+                        on_click=lambda: PoetryState.go_to_poem(
+                            PoetryState.next_poem["id"]
+                        ),
                         class_name="flex items-center text-gray-400 hover:text-[#B7926F] transition-colors duration-300",
                     ),
                     rx.el.div(),
@@ -242,7 +216,7 @@ def index() -> rx.Component:
                 class_name="max-w-3xl mx-auto w-full",
             ),
             app_footer(),
-            on_mount=[PoetryState.fetch_poems, PoetryState.load_favorites],
+            on_mount=PoetryState.fetch_poems,
             class_name="min-h-screen text-[#F3F1EE] flex flex-col items-center p-4 sm:p-6 md:py-12",
         ),
         class_name="poetic-gradient",

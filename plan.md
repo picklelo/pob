@@ -1,88 +1,51 @@
-# Poetry Collection App - Enhanced Features Plan
+# Poetry Collection App - Clean UI Update
 
 ## Project Overview
-Building enhanced features for the poetry collection app including preamble poem display, contextual navigation, refined reading experience, and footer elements. **Section tabs are postponed until the Section field is added to Notion.**
+Simplified the poem page UI by removing favorite/share buttons and implementing working prev/next navigation.
 
 ---
 
-## Phase 1: Preamble Poem "Lost" Display ✅
-- [x] Fetch and identify the "Lost" poem from Notion database
-- [x] Create special highlighted preamble card for "Lost" poem at the top of homepage
-- [x] Style preamble card differently (subtle background, italic "preamble" subtitle)
-- [x] Add fade-in effect for preamble card on site load
-- [x] Position preamble above the main poem list
-- [x] Make preamble card clickable to open in reading view
-- [x] Test preamble card styling and positioning
+## Phase 1: UI Cleanup - Remove Unnecessary Features ✅
+- [x] Remove favorite/share buttons from poem detail page
+- [x] Remove favorite_ids state and related methods (toggle_favorite, load_favorites, is_favorite)
+- [x] Replace button row with clean spacer (h-12 div)
+- [x] Maintain clean "zone" view with just poem content
 
-**Status:** ✅ Complete - Preamble poem "Lost" displays beautifully with centered layout, subtle glow, and smooth fade-in animation.
+**Status:** ✅ Complete - Favorite and share buttons have been removed for a cleaner, more focused reading experience.
 
 ---
 
-## Phase 2: Contextual Poem Navigation & Progress ✅
-- [x] Add previous/next navigation arrows to poem detail pages
-- [x] Calculate previous/next poems based on date ordering
-- [x] Display poem titles in navigation (e.g., "← Previous: Lost" or "Test :Next →")
-- [x] Add progress indicator showing position (e.g., "2 of 2")
-- [x] Implement crossfade transitions between poems (via rx.link)
-- [x] Handle edge cases (first/last poem in collection - show empty div)
+## Phase 2: Fix Prev/Next Navigation ✅
+- [x] Replace rx.link with rx.el.button for navigation controls
+- [x] Add go_to_poem event handler that uses rx.redirect
+- [x] Update prev/next buttons to call go_to_poem with poem ID
 - [x] Test navigation flow between poems
 
-**Status:** ✅ Complete - Navigation controls display at bottom of poem pages with prev/next links, progress indicator, and proper edge case handling.
+**Status:** ✅ Complete - Navigation now uses proper event handlers with rx.redirect for reliable page transitions.
 
 ---
 
-## Phase 3: Refined Poem Page & Reading Mode Enhancement ✅
-- [x] Remove box/card background from poem content area
-- [x] Let poems float directly over gradient background
-- [x] Increase font size to 20px (text-xl) with 1.8 line-height for poem text
-- [x] Enhance Reading Mode to hide all UI elements except poem
-- [x] Center poem vertically in Reading Mode
-- [x] Keep back navigation subtle in corner with smooth fade
-- [x] Add smooth transitions for Reading Mode toggle
-- [x] Test readability and visual polish
+## Project Status: ✅ ALL CHANGES COMPLETE
 
-**Status:** ✅ Complete - Poems now float elegantly over the gradient with larger text, and Reading Mode provides a distraction-free experience with centered content and hidden UI.
+### Summary of Changes:
 
----
+**🧹 Clean UI**
+- Removed favorite/share buttons from poem pages
+- Removed all favorite-related state and localStorage functionality
+- Added clean spacer (h-12) in place of button row
+- Poems now display with minimal distractions
 
-## Phase 4: Footer & Closing Message ✅
-- [x] Add minimal footer to homepage with copyright text
-- [x] Add footer to poem pages as well
-- [x] Style footer: "© Nikhil Rao — The Privilege of Boredom" centered, 50% opacity
-- [x] Position footer at bottom with proper spacing
-- [x] Test footer visibility across different viewport sizes
+**🔧 Working Navigation**
+- Previous/Next buttons now use event handlers instead of static hrefs
+- go_to_poem() event handler properly redirects to new poem pages
+- Navigation buttons show poem titles and handle edge cases (first/last poem)
+- Progress indicator shows current position (e.g., "2 of 3")
 
-**Status:** ✅ Complete - Elegant footer appears on both homepage and poem pages with subtle styling that matches the poetic aesthetic.
+**📖 Maintained Features**
+- Clean "zone" view with poems floating over gradient background
+- Reading Mode for distraction-free reading
+- Larger text (20px) with 1.8 line-height
+- "be still" idle message after 30 seconds
+- Smooth transitions and animations throughout
 
----
-
-## Project Status: ✅ ALL PHASES COMPLETE
-
-### Summary of Implemented Features:
-
-**✨ Preamble Poem Display**
-- Special "Lost" poem card prominently displayed at top of homepage
-- Unique styling with centered layout, glow effect, and italic "preamble" label
-- Smooth fade-in animation on page load
-
-**🧭 Contextual Navigation**
-- Previous/Next navigation with poem titles at bottom of poem pages
-- Progress indicator showing current position (e.g., "1 of 2")
-- Smooth crossfade transitions when navigating between poems
-- Handles edge cases (first/last poem) gracefully
-
-**📖 Refined Reading Experience**
-- Poems float directly over gradient background (no card container)
-- Larger text size (20px) with comfortable 1.8 line-height
-- Enhanced Reading Mode hides all UI elements for immersive reading
-- Vertical centering in Reading Mode
-- Smooth opacity transitions for all interactive elements
-
-**🎨 Professional Polish**
-- Consistent footer on all pages
-- Copyright text with subtle 50% opacity
-- Poetic typography (Fraunces & Inter fonts)
-- Warm color scheme (#B7926F accent, #F3F1EE text)
-- Gentle animations and transitions throughout
-
-**Note:** Section tabs feature (Before/After the Break) has been postponed pending the addition of a "Section" field in the Notion database.
+The poetry app now has a cleaner, more focused interface with working navigation between poems.
