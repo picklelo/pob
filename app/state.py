@@ -41,26 +41,31 @@ class PoetryState(rx.State):
     @rx.var
     def current_poem_index(self) -> int:
         """Returns the index of the currently selected poem in the date-sorted list."""
-        if not self.selected_poem:
+        if not self.selected_poem or not self.selected_poem.get("id"):
             return -1
         try:
-            return self._sorted_poems.index(self.selected_poem)
-        except ValueError as e:
+            poem_id = self.selected_poem["id"]
+            return next(
+                (i for i, p in enumerate(self._sorted_poems) if p["id"] == poem_id), -1
+            )
+        except (ValueError, KeyError) as e:
             logging.exception(f"Error finding poem index: {e}")
             return -1
 
     @rx.var
     def prev_poem(self) -> Optional[Poem]:
         """Returns the previous poem in the date-sorted list."""
-        if self.current_poem_index > 0:
-            return self._sorted_poems[self.current_poem_index - 1]
+        idx = self.current_poem_index
+        if idx > 0 and idx < len(self._sorted_poems):
+            return self._sorted_poems[idx - 1]
         return None
 
     @rx.var
     def next_poem(self) -> Optional[Poem]:
         """Returns the next poem in the date-sorted list."""
-        if 0 <= self.current_poem_index < len(self._sorted_poems) - 1:
-            return self._sorted_poems[self.current_poem_index + 1]
+        idx = self.current_poem_index
+        if 0 <= idx < len(self._sorted_poems) - 1:
+            return self._sorted_poems[idx + 1]
         return None
 
     @rx.var
@@ -203,7 +208,7 @@ class PoetryState(rx.State):
             self.error_message = ""
         try:
             if not self.poems:
-                await self.fetch_poems()
+                yield PoetryState.fetch_poems
             async with self:
                 if self.preamble_poem and self.preamble_poem["id"] == poem_id:
                     poem_data = self.preamble_poem
