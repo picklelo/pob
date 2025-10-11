@@ -26,19 +26,9 @@ def poem_detail_page() -> rx.Component:
                             href="/",
                             class_name="flex items-center text-[#B7926F] font-['Inter'] transition-opacity hover:opacity-80",
                         ),
-                        rx.el.button(
-                            rx.icon("book-open", size=16),
-                            on_click=PoetryState.toggle_reading_mode,
-                            class_name="p-2 rounded-md hover:bg-white/10 transition-colors",
-                            color_scheme="none",
-                        ),
-                        class_name="flex items-center justify-between w-full max-w-3xl px-8 md:px-12",
+                        class_name="flex items-center justify-start w-full max-w-3xl px-8 md:px-12",
                     ),
-                    class_name=rx.cond(
-                        PoetryState.reading_mode,
-                        "opacity-0 transition-opacity fixed top-8 left-1/2 -translate-x-1/2 z-10 w-full",
-                        "opacity-100 transition-opacity w-full",
-                    ),
+                    class_name="opacity-100 transition-opacity w-full",
                 ),
                 rx.cond(
                     PoetryState.is_poem_loading,
@@ -102,22 +92,18 @@ def poem_detail_page() -> rx.Component:
                             ),
                             rx.el.p(
                                 PoetryState.selected_poem["date"],
-                                class_name=rx.cond(
-                                    PoetryState.reading_mode,
-                                    "opacity-0 transition-opacity text-md text-gray-500 mb-12 font-['Inter']",
-                                    "opacity-100 transition-opacity text-md text-gray-500 mb-12 font-['Inter']",
-                                ),
+                                class_name="opacity-100 transition-opacity text-md text-gray-500 mb-12 font-['Inter']",
                             ),
                             rx.el.div(
                                 rx.foreach(
-                                    PoetryState.selected_poem["content"],
-                                    lambda line: rx.el.p(
-                                        line,
-                                        class_name="text-xl text-[#F3F1EE]/80 font-['Inter']",
+                                    PoetryState.poem_stanzas,
+                                    lambda stanza: rx.el.p(
+                                        stanza,
+                                        class_name="text-xl text-[#F3F1EE]/80 font-['Inter'] whitespace-pre-line",
                                         style={"lineHeight": 1.8},
                                     ),
                                 ),
-                                class_name="space-y-4 max-w-none poem-fade-in",
+                                class_name="space-y-6 max-w-none poem-fade-in",
                             ),
                         ),
                     ),
@@ -162,18 +148,10 @@ def poem_detail_page() -> rx.Component:
                     ),
                     rx.el.div(),
                 ),
-                class_name=rx.cond(
-                    PoetryState.reading_mode,
-                    "opacity-0 transition-opacity flex justify-between items-center w-full max-w-3xl mt-8 px-4",
-                    "opacity-100 transition-opacity flex justify-between items-center w-full max-w-3xl mt-8 px-4",
-                ),
+                class_name="opacity-100 transition-opacity flex justify-between items-center w-full max-w-3xl mt-8 px-4",
             ),
             app_footer(),
-            class_name=rx.cond(
-                PoetryState.reading_mode,
-                "w-full min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 md:p-8",
-                "w-full min-h-screen flex flex-col items-center justify-start pt-24 p-4 sm:p-6 md:p-8",
-            ),
+            class_name="w-full min-h-screen flex flex-col items-center justify-start pt-24 p-4 sm:p-6 md:p-8",
         ),
         on_mount=[
             PoetryState.fetch_poem_content,

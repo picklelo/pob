@@ -30,7 +30,6 @@ class PoetryState(rx.State):
     sort_by: str = "Recent"
     sort_options: list[str] = ["Recent", "Oldest First", "Title (A-Z)"]
     favorite_ids: list[str] = []
-    reading_mode: bool = False
     idle: bool = False
 
     @rx.var
@@ -77,6 +76,30 @@ class PoetryState(rx.State):
     def go_to_poem(self, poem_id: str):
         """Navigate to a specific poem page."""
         return rx.redirect(f"/poem/{poem_id}")
+
+    @rx.var
+    def poem_stanzas(self) -> list[str]:
+        """Groups poem content lines into stanzas."""
+        if not self.selected_poem or not self.selected_poem["content"]:
+            return []
+        stanzas = []
+        current_stanza = []
+        for line in self.selected_poem["content"]:
+            if line.strip() == "":
+                if current_stanza:
+                    stanzas.append(
+                        """
+""".join(current_stanza)
+                    )
+                    current_stanza = []
+            else:
+                current_stanza.append(line)
+        if current_stanza:
+            stanzas.append(
+                """
+""".join(current_stanza)
+            )
+        return stanzas
 
     @rx.var
     def filtered_poems(self) -> list[Poem]:
@@ -148,10 +171,6 @@ class PoetryState(rx.State):
             async with self:
                 self.error_message = f"Failed to fetch poems: {str(e)}"
                 self.is_loading = False
-
-    @rx.event
-    async def toggle_reading_mode(self):
-        self.reading_mode = not self.reading_mode
 
     @rx.event(background=True)
     async def handle_idle(self):
