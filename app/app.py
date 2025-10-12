@@ -74,36 +74,39 @@ def poem_detail_page() -> rx.Component:
                             ),
                             class_name="flex flex-col items-center justify-center bg-red-900/20 border border-red-500/30 p-12 rounded-2xl",
                         ),
-                        rx.el.div(
-                            rx.el.div(class_name="h-12"),
-                            rx.cond(
-                                PoetryState.selected_poem["image_url"],
-                                rx.image(
-                                    src=PoetryState.selected_poem["image_url"],
-                                    class_name="w-full h-64 object-cover rounded-xl mb-8 shadow-lg shadow-black/20",
-                                ),
-                            ),
-                            rx.el.h1(
-                                PoetryState.selected_poem["title"],
-                                class_name="text-4xl md:text-5xl font-['Fraunces'] text-[#F3F1EE] mb-2",
-                                style={
-                                    "textShadow": "0 2px 20px rgba(183, 146, 111, 0.3)"
-                                },
-                            ),
-                            rx.el.p(
-                                PoetryState.selected_poem["date"],
-                                class_name="opacity-100 transition-opacity text-md text-gray-500 mb-12 font-['Inter']",
-                            ),
+                        rx.cond(
+                            PoetryState.selected_poem,
                             rx.el.div(
-                                rx.foreach(
-                                    PoetryState.poem_stanzas,
-                                    lambda stanza: rx.el.p(
-                                        stanza,
-                                        class_name="text-xl text-[#F3F1EE]/80 font-['Inter'] whitespace-pre-line",
-                                        style={"lineHeight": 1.8},
+                                rx.el.div(class_name="h-12"),
+                                rx.cond(
+                                    PoetryState.selected_poem["image_url"],
+                                    rx.image(
+                                        src=PoetryState.selected_poem["image_url"],
+                                        class_name="w-full h-64 object-cover rounded-xl mb-8 shadow-lg shadow-black/20",
                                     ),
                                 ),
-                                class_name="space-y-6 max-w-none poem-fade-in",
+                                rx.el.h1(
+                                    PoetryState.selected_poem["title"],
+                                    class_name="text-4xl md:text-5xl font-['Fraunces'] text-[#F3F1EE] mb-2",
+                                    style={
+                                        "textShadow": "0 2px 20px rgba(183, 146, 111, 0.3)"
+                                    },
+                                ),
+                                rx.el.p(
+                                    PoetryState.selected_poem["date"],
+                                    class_name="opacity-100 transition-opacity text-md text-gray-500 mb-12 font-['Inter']",
+                                ),
+                                rx.el.div(
+                                    rx.foreach(
+                                        PoetryState.poem_stanzas,
+                                        lambda stanza: rx.el.p(
+                                            stanza,
+                                            class_name="text-xl text-[#F3F1EE]/80 font-['Inter'] whitespace-pre-line",
+                                            style={"lineHeight": 1.8},
+                                        ),
+                                    ),
+                                    class_name="space-y-6 max-w-none poem-fade-in",
+                                ),
                             ),
                         ),
                     ),
@@ -150,10 +153,9 @@ def poem_detail_page() -> rx.Component:
             class_name="w-full min-h-screen flex flex-col items-center justify-start pt-24 p-4 sm:p-6 md:p-8",
         ),
         on_mount=[
-            PoetryState.fetch_poem_content,
             rx.call_script(
                 "(function() { let timeout; function resetTimer() { clearTimeout(timeout); timeout = setTimeout(() => { E_PoetryState.handle_idle(); }, 30000); } document.onmousemove = resetTimer; document.onkeypress = resetTimer; resetTimer(); })()"
-            ),
+            )
         ],
         class_name="min-h-screen text-[#F3F1EE] poem-detail-crossfade poetic-gradient",
     )
@@ -190,7 +192,6 @@ def index() -> rx.Component:
                 class_name="max-w-3xl mx-auto w-full",
             ),
             app_footer(),
-            on_mount=PoetryState.fetch_poems,
             class_name="min-h-screen text-[#F3F1EE] flex flex-col items-center p-4 sm:p-6 md:py-12",
         ),
         class_name="poetic-gradient",
@@ -209,5 +210,7 @@ app = rx.App(
     ],
     stylesheets=["/style.css"],
 )
-app.add_page(index)
-app.add_page(poem_detail_page, route="/poem/[poem_id]")
+app.add_page(index, on_load=PoetryState.fetch_poems)
+app.add_page(
+    poem_detail_page, route="/poem/[poem_id]", on_load=PoetryState.fetch_poem_content
+)
