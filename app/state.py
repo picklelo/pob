@@ -200,30 +200,34 @@ class PoetryState(rx.State):
             yield PoetryState.fetch_poems
             return
         try:
-            async with self:
-                poem_data = next((p for p in self.poems if p["id"] == poem_id), None)
-            if poem_data:
-                notion_token = os.getenv("NOTION_API_KEY")
-                if not notion_token:
-                    async with self:
-                        self.error_message = "Notion API key not configured."
-                        self.is_poem_loading = False
-                    return
-                notion = AsyncClient(auth=notion_token)
-                blocks_result = await notion.blocks.children.list(block_id=poem_id)
-                content_lines = []
-                for block in blocks_result.get("results", []):
-                    if block["type"] == "paragraph":
-                        text_parts = block.get("paragraph", {}).get("rich_text", [])
-                        line = "".join([t["plain_text"] for t in text_parts])
-                        content_lines.append(line)
-                poem_data["content"] = content_lines
+            notion_token = os.getenv("NOTION_API_KEY")
+            if not notion_token:
                 async with self:
-                    self.selected_poem = poem_data
-            else:
+                    self.error_message = "Notion API key not configured."
+                    self.is_poem_loading = False
+                return
+            async with self:
+                poem_exists = any((p for p in self.poems if p["id"] == poem_id))
+            if not poem_exists:
                 async with self:
                     self.error_message = "Poem not found."
+                    self.is_poem_loading = False
+                return
+            notion = AsyncClient(auth=notion_token)
+            blocks_result = await notion.blocks.children.list(block_id=poem_id)
+            content_lines = []
+            for block in blocks_result.get("results", []):
+                if block["type"] == "paragraph":
+                    text_parts = block.get("paragraph", {}).get("rich_text", [])
+                    line = "".join([t["plain_text"] for t in text_parts])
+                    content_lines.append(line)
             async with self:
+                poem_data = next((p for p in self.poems if p["id"] == poem_id), None)
+                if poem_data:
+                    poem_data["content"] = content_lines
+                    self.selected_poem = poem_data
+                else:
+                    self.error_message = "Poem disappeared during fetch."
                 self.is_poem_loading = False
         except Exception as e:
             logging.exception(f"Failed to fetch poem content for ID {poem_id}: {e}")
