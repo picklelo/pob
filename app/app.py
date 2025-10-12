@@ -170,30 +170,36 @@ def index() -> rx.Component:
                 rx.el.div(
                     rx.el.h1(
                         "The Privilege of Boredom",
-                        class_name="text-4xl md:text-5xl font-['Fraunces'] text-[#F3F1EE] mt-4",
-                        style={"textShadow": "0 2px 20px rgba(183, 146, 111, 0.3)"},
+                        class_name="text-5xl md:text-6xl font-['Fraunces'] italic font-medium text-[#F3F1EE]",
+                        style={"textShadow": "0 2px 40px rgba(0, 0, 0, 0.2)"},
                     ),
                     rx.el.h2(
                         "poems from before and after the break.",
-                        class_name="text-lg text-gray-400 mt-2 font-['Inter']",
+                        class_name="text-lg text-gray-400/90 mt-4 font-['Inter'] italic",
                     ),
                     rx.el.p(
                         "Attention is costly. Boredom is a luxury.",
-                        class_name="text-gray-500 mt-8 font-['Inter']",
+                        class_name="text-sm text-gray-500/80 mt-12 font-['Inter']",
                     ),
-                    class_name="text-center mb-12 poem-fade-in",
+                    class_name="text-center mb-24 header-fade-in",
                 ),
                 rx.cond(
                     PoetryState.preamble_poem, preamble_card(PoetryState.preamble_poem)
                 ),
-                rx.el.div(
-                    filter_controls(), poetry_grid(), class_name="space-y-6 mt-12"
-                ),
-                class_name="max-w-3xl mx-auto w-full",
+                rx.el.div(filter_controls(), poetry_grid(), class_name="mt-16"),
+                class_name="max-w-2xl mx-auto w-full px-4",
             ),
             app_footer(),
-            class_name="min-h-screen text-[#F3F1EE] flex flex-col items-center p-4 sm:p-6 md:py-12",
+            class_name="min-h-screen text-[#F3F1EE] flex flex-col items-center pt-32 p-4 sm:p-6 md:py-24",
         ),
+        on_mount=[
+            rx.call_script(
+                "(function() { let timeout; function resetTimer() { clearTimeout(timeout); timeout = setTimeout(() => { E_PoetryState.handle_idle(); }, 30000); } document.onmousemove = resetTimer; document.onkeypress = resetTimer; resetTimer(); })()"
+            ),
+            rx.call_script(
+                "(function() { function checkScroll() { if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) { E_PoetryState.at_bottom(); window.removeEventListener('scroll', checkScroll); } } window.addEventListener('scroll', checkScroll); })()"
+            ),
+        ],
         class_name="poetic-gradient",
     )
 
@@ -204,7 +210,7 @@ app = rx.App(
         rx.el.link(rel="preconnect", href="https://fonts.googleapis.com"),
         rx.el.link(rel="preconnect", href="https://fonts.gstatic.com", cross_origin=""),
         rx.el.link(
-            href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Inter:wght@300;400;500&display=swap",
+            href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400;1,9..144,700&family=Inter:ital,wght@0,300;0,400;0,500;1,400&display=swap",
             rel="stylesheet",
         ),
     ],

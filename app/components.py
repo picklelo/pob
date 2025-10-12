@@ -5,11 +5,21 @@ from app.state import PoetryState, Poem
 def app_footer() -> rx.Component:
     """A shared footer for all pages."""
     return rx.el.footer(
-        rx.el.p(
-            "© Nikhil Rao — The Privilege of Boredom.",
-            class_name="font-['Inter'] text-center text-sm text-gray-500/50 py-12",
+        rx.el.div(
+            rx.el.p(
+                "Thank you for staying.",
+                class_name=rx.cond(
+                    PoetryState.scrolled_to_bottom,
+                    "text-center text-sm text-gray-400/80 mb-8 transition-opacity duration-1000 opacity-100 font-['Fraunces'] italic",
+                    "text-center text-sm text-gray-400/80 mb-8 transition-opacity duration-1000 opacity-0 font-['Fraunces'] italic",
+                ),
+            ),
+            rx.el.p(
+                "© Nikhil Rao — The Privilege of Boredom",
+                class_name="font-['Inter'] text-center text-xs text-gray-500/50 pb-12",
+            ),
         ),
-        class_name="w-full flex-shrink-0",
+        class_name="w-full flex-shrink-0 mt-24",
     )
 
 
@@ -19,12 +29,12 @@ def filter_controls() -> rx.Component:
         rx.el.div(
             rx.icon(
                 "search",
-                class_name="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500",
+                class_name="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500/70",
             ),
             rx.el.input(
-                placeholder="Search by title or feeling…",
+                placeholder="Search...",
                 on_change=PoetryState.set_search_term,
-                class_name="w-full pl-10 pr-4 py-2.5 rounded-lg border border-white/10 bg-black/20 focus:ring-2 focus:ring-[#B7926F] focus:border-transparent transition text-[#F3F1EE] placeholder-gray-500 font-['Inter']",
+                class_name="w-full pl-9 pr-4 py-2 bg-transparent border-b border-white/10 focus:ring-0 focus:border-[#B7926F] transition text-[#F3F1EE] placeholder-gray-500 font-['Inter']",
                 default_value=PoetryState.search_term,
             ),
             class_name="relative flex-grow",
@@ -34,85 +44,66 @@ def filter_controls() -> rx.Component:
                 rx.foreach(
                     PoetryState.sort_options,
                     lambda option: rx.el.option(
-                        option, value=option, class_name="bg-gray-800 text-[#F3F1EE]"
+                        option, value=option, class_name="bg-gray-900 text-[#F3F1EE]"
                     ),
                 ),
                 value=PoetryState.sort_by,
                 on_change=PoetryState.set_sort_by,
-                class_name="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2.5 appearance-none focus:ring-2 focus:ring-[#B7926F] focus:border-transparent transition text-[#F3F1EE] font-['Inter']",
+                class_name="w-full bg-transparent border-b border-white/10 px-4 py-2 appearance-none focus:ring-0 focus:border-[#B7926F] transition text-[#F3F1EE] font-['Inter']",
             ),
             rx.icon(
                 "chevron-down",
-                class_name="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none",
+                class_name="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500/70 pointer-events-none",
             ),
             class_name="relative",
         ),
-        class_name="flex flex-col md:flex-row gap-4 mb-8",
+        class_name="flex flex-col md:flex-row gap-6 mb-8",
     )
 
 
 def preamble_card(poem: Poem) -> rx.Component:
-    """A special card for the preamble poem."""
+    """A special card for the preamble poem, styled as an opening page."""
     return rx.el.a(
         rx.el.h2(
             poem["title"],
-            class_name="text-3xl font-['Fraunces'] text-[#F3F1EE] group-hover:text-[#B7926F] transition-colors duration-300",
-            style={"textShadow": "0 2px 20px rgba(183, 146, 111, 0.4)"},
-        ),
-        rx.el.p(
-            "preamble",
-            class_name="text-md italic text-gray-500 mt-2 font-['Inter'] group-hover:text-[#B7926F]/80 transition-colors duration-300",
-        ),
-        rx.el.p(
-            poem["excerpt"],
-            class_name="text-gray-400 mt-4 font-['Inter'] leading-relaxed text-center",
+            class_name="text-4xl font-['Fraunces'] font-medium text-[#F3F1EE] transition-colors duration-300 hover:text-white/80",
+            style={"textShadow": "0 2px 30px rgba(0, 0, 0, 0.2)"},
         ),
         href=f"/poem/{poem['id']}",
-        class_name="w-full flex flex-col items-center text-center p-8 bg-black/10 rounded-2xl transition-all duration-300 ease-in-out group hover:bg-black/20 preamble-fade-in mb-8",
-        style={"boxShadow": "0 0 40px rgba(183, 146, 111, 0.1)"},
+        class_name="w-full flex flex-col items-center text-center py-16 transition-all duration-400 ease-in-out preamble-fade-in mb-16",
     )
 
 
 def poem_card(poem: Poem) -> rx.Component:
-    """A card component to display a single poem in a vertical list."""
+    """A component to display a single poem title in the list."""
     return rx.el.a(
         rx.el.div(
-            rx.el.div(
-                rx.el.h3(
-                    poem["title"],
-                    class_name="text-lg font-['Fraunces'] text-[#F3F1EE] group-hover:text-[#B7926F] transition-colors duration-300",
-                    style={"textShadow": "0 2px 10px rgba(183, 146, 111, 0.3)"},
-                ),
-                rx.el.p(
-                    poem["date"],
-                    class_name="text-sm font-light text-gray-500 font-['Inter']",
-                ),
+            rx.el.h3(
+                poem["title"],
+                class_name="text-2xl font-['Fraunces'] text-[#EAE6DF] group-hover:text-white transition-colors duration-300",
             ),
             rx.el.p(
-                poem["excerpt"],
-                class_name="text-sm text-gray-400 mt-3 font-['Inter'] leading-relaxed",
+                poem["date"], class_name="text-sm text-gray-600 font-['Inter'] mt-1"
             ),
             class_name="flex-1",
         ),
         rx.icon(
-            "chevron-right",
-            class_name="text-gray-600 group-hover:text-[#B7926F] transition-transform group-hover:translate-x-1 duration-300",
+            "arrow-right",
+            class_name="text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
         ),
         href=f"/poem/{poem['id']}",
-        class_name="w-full flex items-center justify-between p-6 bg-black/10 border border-white/5 rounded-2xl transition-all duration-300 ease-in-out group hover:border-[#B7926F]/30 hover:bg-black/20 poem-fade-in",
+        class_name="w-full flex items-center justify-between py-6 border-b border-white/5 transition-all duration-300 ease-in-out group poem-fade-in",
     )
 
 
 def skeleton_card() -> rx.Component:
-    """A skeleton loading card for the vertical list view."""
+    """A skeleton loading card for the poem list."""
     return rx.el.div(
         rx.el.div(
-            rx.el.div(class_name="h-5 w-1/2 bg-gray-800 rounded-lg"),
-            rx.el.div(class_name="h-4 w-1/4 bg-gray-800 rounded-lg mt-2"),
-            class_name="flex-1",
+            rx.el.div(class_name="h-6 w-3/5 bg-gray-800 rounded-md"),
+            rx.el.div(class_name="h-4 w-1/4 bg-gray-800 rounded-md mt-2"),
         ),
-        rx.el.div(class_name="h-4 w-3/4 bg-gray-800 rounded-lg mt-3"),
-        class_name="w-full p-6 bg-black/10 border border-white/5 rounded-2xl animate-pulse",
+        class_name="w-full py-6 border-b border-white/5 animate-pulse",
     )
 
 
@@ -151,7 +142,7 @@ def poetry_grid() -> rx.Component:
                 ),
                 rx.el.div(
                     rx.foreach(PoetryState.filtered_poems, poem_card),
-                    class_name="w-full space-y-4",
+                    class_name="w-full",
                 ),
             ),
         ),

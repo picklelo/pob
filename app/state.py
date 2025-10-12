@@ -31,6 +31,12 @@ class PoetryState(rx.State):
     sort_options: list[str] = ["Recent", "Oldest First", "Title (A-Z)"]
     favorite_ids: list[str] = []
     idle: bool = False
+    scrolled_to_bottom: bool = False
+
+    @rx.event
+    def at_bottom(self):
+        """Sets the scrolled_to_bottom state to true."""
+        self.scrolled_to_bottom = True
 
     @rx.var
     def _sorted_poems(self) -> list[Poem]:
