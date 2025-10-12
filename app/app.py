@@ -114,16 +114,14 @@ def poem_detail_page() -> rx.Component:
             rx.el.div(
                 rx.cond(
                     PoetryState.prev_poem,
-                    rx.el.button(
+                    rx.el.a(
                         rx.icon("arrow-left", size=16, class_name="mr-2"),
                         rx.el.span("Previous: "),
                         rx.el.span(
                             PoetryState.prev_poem["title"],
                             class_name="font-['Fraunces']",
                         ),
-                        on_click=lambda: PoetryState.go_to_poem(
-                            PoetryState.prev_poem["id"]
-                        ),
+                        href=f"/poem/{PoetryState.prev_poem['id']}",
                         class_name="flex items-center text-gray-400 hover:text-[#B7926F] transition-colors duration-300",
                     ),
                     rx.el.div(),
@@ -134,16 +132,14 @@ def poem_detail_page() -> rx.Component:
                 ),
                 rx.cond(
                     PoetryState.next_poem,
-                    rx.el.button(
+                    rx.el.a(
                         rx.el.span(
                             PoetryState.next_poem["title"],
                             class_name="font-['Fraunces']",
                         ),
                         rx.el.span(" :Next"),
                         rx.icon("arrow-right", size=16, class_name="ml-2"),
-                        on_click=lambda: PoetryState.go_to_poem(
-                            PoetryState.next_poem["id"]
-                        ),
+                        href=f"/poem/{PoetryState.next_poem['id']}",
                         class_name="flex items-center text-gray-400 hover:text-[#B7926F] transition-colors duration-300",
                     ),
                     rx.el.div(),

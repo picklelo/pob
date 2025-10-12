@@ -1,51 +1,60 @@
-# Poetry Collection App - UI Refinement ✅
+# Poetry Collection App - Navigation Fix ✅
 
 ## Project Overview
-Remove the reading mode button and fix poem formatting to properly handle stanzas.
+Fix prev/next navigation buttons and direct URL access issues on poem detail pages.
 
 ---
 
-## Phase 1: Remove Reading Mode Button ✅
-- [x] Remove the book-open icon button from poem detail page header
-- [x] Remove `reading_mode` state variable
-- [x] Remove `toggle_reading_mode` event handler
-- [x] Remove all conditional rendering based on `reading_mode`
-- [x] Simplify layout to always show standard view (no more centering/hiding elements)
+## Phase 1: Fix Navigation Links ✅
+- [x] Replace button event handlers with direct anchor links
+- [x] Change from `on_click` with lambdas to `href` attributes
+- [x] Use `/poem/{poem_id}` direct links for prev/next navigation
+- [x] Remove complex lambda closure issues by using simple hrefs
+- [x] Test navigation logic with sorted poems
 
-**Status:** ✅ Complete - Reading mode toggle has been removed for a simpler, cleaner interface.
-
----
-
-## Phase 2: Fix Poem Stanza Formatting ✅
-- [x] Add `poem_stanzas` computed var to group lines by empty line breaks
-- [x] Update poem rendering to use simple paragraph elements with whitespace-pre-line
-- [x] Fix rendering approach to avoid complex nested lambdas
-- [x] Apply proper styling (text-xl, line-height 1.8, space-y-6 between stanzas)
-
-**Status:** ✅ Complete - Poems now display with proper stanza formatting. Single newlines stay within the same paragraph, and only empty lines create stanza breaks.
+**Status:** ✅ Complete - Navigation now uses direct links instead of event handlers, fixing the lambda closure issue.
 
 ---
 
-## ✅ ALL CHANGES COMPLETE
+## Phase 2: Fix Direct URL Access & Page Refresh ✅
+- [x] Ensure `fetch_poem_content` properly sets `selected_poem` early
+- [x] Fix computed vars to work correctly when page loads directly
+- [x] Handle case where poems list needs to be fetched first
+- [x] Set `selected_poem` immediately after finding poem data
+- [x] Ensure navigation buttons render correctly on page load
+
+**Status:** ✅ Complete - Direct URLs and page refreshes now work properly. The poem content loads correctly and navigation links are available.
+
+---
+
+## ✅ ALL FIXES COMPLETE
 
 ### Summary of Changes:
 
-**🧹 Removed Reading Mode Button**
-- Removed the book-open icon button from poem detail page
-- Removed `reading_mode` state variable and `toggle_reading_mode` event handler
-- Simplified all conditional rendering - UI always shows the standard view
-- Removed opacity transitions on date and navigation elements
+**🔗 Navigation Links Fixed**
+- Changed prev/next buttons from `on_click` event handlers to `href` anchor links
+- Navigation now uses simple `/poem/{poem_id}` URLs
+- Eliminates lambda closure issues that prevented IDs from being passed correctly
+- Links work with browser back/forward navigation
+- Better for SEO and user experience
 
-**📝 Fixed Poem Formatting**
-- Added `poem_stanzas` computed var that groups lines by empty line breaks
-- Single newlines (consecutive non-empty lines) = same stanza/paragraph
-- Double newlines (empty lines) = stanza break with visual spacing
-- Each stanza rendered as a `<p>` tag with `whitespace-pre-line` CSS
-- Maintains elegant typography: 20px text, 1.8 line-height, 6-unit spacing between stanzas
+**🔄 Direct URL Access Fixed**
+- `fetch_poem_content` now properly sets `selected_poem` before fetching full content
+- Navigation computed vars (`prev_poem`, `next_poem`, `current_poem_index`) work correctly on page load
+- Handles the case where poems list needs to be fetched first
+- Page refreshes and direct URL access now work reliably
 
-**🎨 Maintained Features**
-- Clean "zone" view with poems floating over gradient background
-- Navigation between poems with prev/next buttons
-- "be still" idle message after 30 seconds
-- Smooth transitions and animations throughout
-- Beautiful typography and spacing
+**✅ What Now Works:**
+- ✅ Clicking prev/next links navigates correctly between poems
+- ✅ Refreshing a poem page loads and displays correctly
+- ✅ Direct URL access (e.g., `/poem/abc123`) works properly
+- ✅ Navigation buttons show correct prev/next poem titles
+- ✅ Poem counter shows correct position (e.g., "2 of 5")
+- ✅ Browser back/forward buttons work as expected
+
+**🎯 Technical Details:**
+- Removed `go_to_poem` event handler (no longer needed)
+- Navigation is now handled entirely by href links
+- State management simplified - no complex event chains
+- `fetch_poem_content` uses `router.page.params` to get poem_id from URL
+- Early `selected_poem` assignment ensures computed vars work immediately
