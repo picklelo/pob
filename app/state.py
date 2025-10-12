@@ -186,24 +186,29 @@ class PoetryState(rx.State):
         async with self:
             self.idle = False
 
-    @rx.event
+    @rx.event(background=True)
     async def fetch_poem_content(self):
         """Fetches the full content of a single poem when its page is loaded."""
-        poem_id = self.router.page.params.get("poem_id", "")
-        if not poem_id:
-            return
-        self.is_poem_loading = True
-        self.error_message = ""
-        self.selected_poem = None
+        async with self:
+            poem_id = self.router.page.params.get("poem_id", "")
+            if not poem_id:
+                return
+            self.is_poem_loading = True
+            self.error_message = ""
+            self.selected_poem = None
         if not self.poems:
             await self.fetch_poems()
+            async with self:
+                pass
         try:
-            poem_data = next((p for p in self.poems if p["id"] == poem_id), None)
+            async with self:
+                poem_data = next((p for p in self.poems if p["id"] == poem_id), None)
             if poem_data:
                 notion_token = os.getenv("NOTION_API_KEY")
                 if not notion_token:
-                    self.error_message = "Notion API key not configured."
-                    self.is_poem_loading = False
+                    async with self:
+                        self.error_message = "Notion API key not configured."
+                        self.is_poem_loading = False
                     return
                 notion = AsyncClient(auth=notion_token)
                 blocks_result = await notion.blocks.children.list(block_id=poem_id)
@@ -214,14 +219,18 @@ class PoetryState(rx.State):
                         line = "".join([t["plain_text"] for t in text_parts])
                         content_lines.append(line)
                 poem_data["content"] = content_lines
-                self.selected_poem = poem_data
+                async with self:
+                    self.selected_poem = poem_data
             else:
-                self.error_message = "Poem not found."
-            self.is_poem_loading = False
+                async with self:
+                    self.error_message = "Poem not found."
+            async with self:
+                self.is_poem_loading = False
         except Exception as e:
             logging.exception(f"Failed to fetch poem content for ID {poem_id}: {e}")
-            self.error_message = f"A problem occurred while loading the poem."
-            self.is_poem_loading = False
+            async with self:
+                self.error_message = f"A problem occurred while loading the poem."
+                self.is_poem_loading = False
 
     async def _process_page(self, notion: AsyncClient, page: dict) -> Optional[Poem]:
         """Helper to process a single Notion page into a Poem object."""
