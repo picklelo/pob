@@ -40,12 +40,8 @@ class PoetryState(rx.State):
 
     @rx.var
     def _sorted_poems(self) -> list[Poem]:
-        """Returns poems sorted by date, which is the base for navigation."""
-        return sorted(
-            self.poems,
-            key=lambda p: (bool(p.get("date")), p.get("date", "")),
-            reverse=True,
-        )
+        """Returns poems in reverse of their natural order, which is the base for navigation."""
+        return self.poems[::-1]
 
     @rx.var
     def current_poem_index(self) -> int:
@@ -128,24 +124,12 @@ class PoetryState(rx.State):
                 or search_lower in p["excerpt"].lower()
             ]
         if self.sort_by == "Recent":
-            return sorted(
-                poems_to_filter,
-                key=lambda p: (bool(p.get("date")), p.get("date", "")),
-                reverse=True,
-            )
+            return poems_to_filter[::-1]
         elif self.sort_by == "Oldest First":
-            return sorted(
-                poems_to_filter,
-                key=lambda p: (bool(p.get("date")), p.get("date", "")),
-                reverse=False,
-            )
+            return poems_to_filter
         elif "Title" in self.sort_by:
             return sorted(poems_to_filter, key=lambda p: p["title"], reverse=False)
-        return sorted(
-            poems_to_filter,
-            key=lambda p: (bool(p.get("date")), p.get("date", "")),
-            reverse=True,
-        )
+        return poems_to_filter[::-1]
 
     @rx.var
     def collection_stats(self) -> str:
@@ -173,10 +157,7 @@ class PoetryState(rx.State):
                     self.is_loading = False
                 return
             notion = AsyncClient(auth=notion_token)
-            db_query = await notion.databases.query(
-                database_id=self.database_id,
-                sorts=[{"property": "Date", "direction": "descending"}],
-            )
+            db_query = await notion.databases.query(database_id=self.database_id)
             tasks = [
                 self._process_page(notion, page) for page in db_query.get("results", [])
             ]
