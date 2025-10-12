@@ -41,7 +41,11 @@ class PoetryState(rx.State):
     @rx.var
     def _sorted_poems(self) -> list[Poem]:
         """Returns poems sorted by date, which is the base for navigation."""
-        return sorted(self.poems, key=lambda p: p.get("date", ""), reverse=True)
+        return sorted(
+            self.poems,
+            key=lambda p: (bool(p.get("date")), p.get("date", "")),
+            reverse=True,
+        )
 
     @rx.var
     def current_poem_index(self) -> int:
@@ -125,15 +129,23 @@ class PoetryState(rx.State):
             ]
         if self.sort_by == "Recent":
             return sorted(
-                poems_to_filter, key=lambda p: p.get("date", ""), reverse=True
+                poems_to_filter,
+                key=lambda p: (bool(p.get("date")), p.get("date", "")),
+                reverse=True,
             )
         elif self.sort_by == "Oldest First":
             return sorted(
-                poems_to_filter, key=lambda p: p.get("date", ""), reverse=False
+                poems_to_filter,
+                key=lambda p: (bool(p.get("date")), p.get("date", "")),
+                reverse=False,
             )
         elif "Title" in self.sort_by:
             return sorted(poems_to_filter, key=lambda p: p["title"], reverse=False)
-        return sorted(poems_to_filter, key=lambda p: p.get("date", ""), reverse=True)
+        return sorted(
+            poems_to_filter,
+            key=lambda p: (bool(p.get("date")), p.get("date", "")),
+            reverse=True,
+        )
 
     @rx.var
     def collection_stats(self) -> str:
