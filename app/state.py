@@ -192,7 +192,7 @@ class PoetryState(rx.State):
             self.selected_poem = None
         try:
             if not self.poems:
-                await self.fetch_poems()
+                yield PoetryState.fetch_poems
             poem_data = None
             async with self:
                 if self.preamble_poem and self.preamble_poem["id"] == poem_id:
