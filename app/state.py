@@ -158,7 +158,10 @@ class PoetryState(rx.State):
                     self.is_loading = False
                 return
             notion = AsyncClient(auth=notion_token)
-            db_query = await notion.databases.query(database_id=self.database_id)
+            db_query = await notion.databases.query(
+                database_id=self.database_id,
+                sorts=[{"property": "Date", "direction": "descending"}],
+            )
             tasks = [
                 self._process_page(notion, page) for page in db_query.get("results", [])
             ]
