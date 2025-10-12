@@ -191,7 +191,9 @@ class PoetryState(rx.State):
             self.error_message = ""
             self.selected_poem = None
         try:
-            if not self.poems:
+            async with self:
+                poems_loaded = bool(self.poems)
+            if not poems_loaded:
                 yield PoetryState.fetch_poems
             poem_data = None
             async with self:
@@ -224,8 +226,10 @@ class PoetryState(rx.State):
                     line = "".join([t["plain_text"] for t in text_parts])
                     content_lines.append(line)
             async with self:
-                poem_data["content"] = content_lines
-                self.selected_poem = poem_data
+                if self.selected_poem:
+                    poem_data = self.selected_poem.copy()
+                    poem_data["content"] = content_lines
+                    self.selected_poem = poem_data
                 self.is_poem_loading = False
         except Exception as e:
             logging.exception(f"Failed to fetch poem content for ID {poem_id}: {e}")

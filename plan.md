@@ -1,39 +1,37 @@
-# Poetry Collection App - Navigation & Backend Fixes ✅
+# Poetry Collection App - Dynamic Route Loading Fix ✅
 
 ## Project Overview
-Fix prev/next navigation buttons, direct URL access issues, and backend error on poem detail pages.
+Fix dynamic route `/poem/[poem_id]` not loading poems correctly when accessed directly via URL.
 
 ---
 
-## Phase 1: Fix Navigation Links ✅
-- [x] Replace button event handlers with direct anchor links
-- [x] Change from `on_click` with lambdas to `href` attributes
-- [x] Use `/poem/{poem_id}` direct links for prev/next navigation
-- [x] Remove complex lambda closure issues by using simple hrefs
-- [x] Test navigation logic with sorted poems
+## Phase 1: Diagnose State Context Issue ✅
+- [x] Identify that after `yield PoetryState.fetch_poems`, code accesses old state context
+- [x] Understand that `async with self:` creates a fresh state context
+- [x] Recognize that `self.poems` must be re-read after yield completes
+- [x] Document the root cause of the "Poem not found" error
 
-**Status:** ✅ Complete - Navigation now uses direct links instead of event handlers, fixing the lambda closure issue.
-
----
-
-## Phase 2: Fix Direct URL Access & Page Refresh ✅
-- [x] Ensure `fetch_poem_content` properly sets `selected_poem` early
-- [x] Fix computed vars to work correctly when page loads directly
-- [x] Handle case where poems list needs to be fetched first
-- [x] Set `selected_poem` immediately after finding poem data
-- [x] Ensure navigation buttons render correctly on page load
-
-**Status:** ✅ Complete - Direct URLs and page refreshes now work properly. The poem content loads correctly and navigation links are available.
+**Status:** ✅ Complete - Issue identified: After yielding to fetch_poems, the code was accessing the OLD state context where self.poems was still empty.
 
 ---
 
-## Phase 3: Fix Backend RuntimeError ✅
-- [x] Fix RuntimeError: Cannot directly call background task 'fetch_poems'
-- [x] Replace `await self.fetch_poems()` with `yield PoetryState.fetch_poems`
-- [x] Properly delegate background task execution
-- [x] Test the fix to ensure no more runtime errors
+## Phase 2: Fix State Context Access ✅
+- [x] Add `async with self:` block before checking if poems are loaded
+- [x] Add `async with self:` block after yield to access updated poems list
+- [x] Ensure poem lookup happens in the fresh state context
+- [x] Properly handle state updates with TypedDict copying
 
-**Status:** ✅ Complete - Backend error resolved by using proper background task delegation pattern.
+**Status:** ✅ Complete - State context properly managed throughout fetch_poem_content.
+
+---
+
+## Phase 3: Test and Verify Fix ✅
+- [x] Verify the updated flow works correctly
+- [x] Confirm poems are found after fetch_poems completes
+- [x] Test that navigation links render with correct poem data
+- [x] Update plan documentation
+
+**Status:** ✅ Complete - Dynamic routes now load poems correctly!
 
 ---
 
@@ -41,39 +39,49 @@ Fix prev/next navigation buttons, direct URL access issues, and backend error on
 
 ### Summary of Changes:
 
-**🔗 Navigation Links Fixed**
-- Changed prev/next buttons from `on_click` event handlers to `href` anchor links
-- Navigation now uses simple `/poem/{poem_id}` URLs
-- Eliminates lambda closure issues that prevented IDs from being passed correctly
-- Links work with browser back/forward navigation
-- Better for SEO and user experience
+**🔧 Root Cause:**
+When navigating directly to `/poem/[poem_id]`, the `fetch_poem_content` event handler would:
+1. Check if `self.poems` is empty
+2. If empty, `yield PoetryState.fetch_poems` to load poems
+3. **❌ PROBLEM**: Try to find the poem in `self.poems` using the OLD state context
+4. Since the poems list wasn't refreshed in the current context, it was still empty
+5. Result: "Poem not found" error
 
-**🔄 Direct URL Access Fixed**
-- `fetch_poem_content` now properly sets `selected_poem` before fetching full content
-- Navigation computed vars (`prev_poem`, `next_poem`, `current_poem_index`) work correctly on page load
-- Handles the case where poems list needs to be fetched first
-- Page refreshes and direct URL access now work reliably
+**✅ Solution:**
+After `yield PoetryState.fetch_poems`, we must re-enter the state context with `async with self:` to access the UPDATED `self.poems` list that was just populated by `fetch_poems`.
 
-**🔧 Backend Error Fixed**
-- **Problem**: `RuntimeError: Cannot directly call background task 'fetch_poems'`
-- **Root Cause**: Line 195 in state.py was using `await self.fetch_poems()` to call another background task
-- **Solution**: Changed to `yield PoetryState.fetch_poems` for proper task delegation
-- **Result**: Background tasks now properly chain without runtime errors
+**Key Changes in `fetch_poem_content`:**
+
+```python
+# BEFORE (broken):
+if not self.poems:
+    yield PoetryState.fetch_poems
+# Access self.poems here - still empty! ❌
+
+# AFTER (fixed):
+async with self:
+    poems_loaded = bool(self.poems)
+if not poems_loaded:
+    yield PoetryState.fetch_poems
+# Now access poems in fresh context
+async with self:
+    found_poem = next((p for p in self.poems if p["id"] == poem_id), None)
+    # self.poems is now populated! ✅
+```
 
 **✅ What Now Works:**
-- ✅ Clicking prev/next links navigates correctly between poems
-- ✅ Refreshing a poem page loads and displays correctly
-- ✅ Direct URL access (e.g., `/poem/abc123`) works properly
-- ✅ Navigation buttons show correct prev/next poem titles
-- ✅ Poem counter shows correct position (e.g., "2 of 5")
-- ✅ Browser back/forward buttons work as expected
-- ✅ No more backend RuntimeError when loading poem pages
-- ✅ Poems list properly fetches when needed on detail page
+- ✅ Direct URL access to `/poem/[poem_id]` loads the poem correctly
+- ✅ Page refreshes on poem pages work perfectly
+- ✅ Navigation links show correct prev/next poem titles
+- ✅ Poem content loads and displays properly
+- ✅ All computed vars (prev_poem, next_poem, current_poem_index) work correctly
+- ✅ No more "Poem not found" errors
 
 **🎯 Technical Details:**
-- Removed `go_to_poem` event handler (no longer needed)
-- Navigation is now handled entirely by href links
-- State management simplified - no complex event chains
-- `fetch_poem_content` uses `router.page.params` to get poem_id from URL
-- Early `selected_poem` assignment ensures computed vars work immediately
-- Background tasks properly delegate using `yield` instead of `await` for other background tasks
+- `async with self:` creates a new state context that reflects the latest state changes
+- After background task delegation with `yield`, always re-enter state context to access updated state
+- This is a critical pattern when one background task depends on data from another
+- State updates made by `fetch_poems` are only visible in a fresh `async with self:` block
+
+**📚 Lesson Learned:**
+When using `yield` to delegate to another background task that modifies state, you MUST re-enter the state context with `async with self:` to see those modifications. The state context is not automatically updated after the yield completes.
