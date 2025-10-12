@@ -27,8 +27,8 @@ class PoetryState(rx.State):
     selected_poem: Optional[Poem] = None
     is_poem_loading: bool = False
     search_term: str = ""
-    sort_by: str = "Recent"
-    sort_options: list[str] = ["Recent", "Oldest First", "Title (A-Z)"]
+    sort_by: str = "Oldest First"
+    sort_options: list[str] = ["Oldest First", "Recent", "Title (A-Z)"]
     favorite_ids: list[str] = []
     idle: bool = False
     scrolled_to_bottom: bool = False
@@ -41,7 +41,7 @@ class PoetryState(rx.State):
     @rx.var
     def _sorted_poems(self) -> list[Poem]:
         """Returns poems sorted by date, which is the base for navigation."""
-        return sorted(self.poems, key=lambda p: p.get("date", ""), reverse=True)
+        return sorted(self.poems, key=lambda p: p.get("date", ""), reverse=False)
 
     @rx.var
     def current_poem_index(self) -> int:
@@ -123,21 +123,24 @@ class PoetryState(rx.State):
                 if search_lower in p["title"].lower()
                 or search_lower in p["excerpt"].lower()
             ]
-        reverse = self.sort_by == "Recent"
-        if "Date" in self.sort_by or self.sort_by == "Recent":
+        if self.sort_by == "Recent":
             return sorted(
-                poems_to_filter, key=lambda p: p.get("date", ""), reverse=reverse
+                poems_to_filter, key=lambda p: p.get("date", ""), reverse=True
+            )
+        elif self.sort_by == "Oldest First":
+            return sorted(
+                poems_to_filter, key=lambda p: p.get("date", ""), reverse=False
             )
         elif "Title" in self.sort_by:
             return sorted(poems_to_filter, key=lambda p: p["title"], reverse=False)
-        return sorted(poems_to_filter, key=lambda p: p.get("date", ""), reverse=reverse)
+        return sorted(poems_to_filter, key=lambda p: p.get("date", ""), reverse=False)
 
     @rx.var
     def collection_stats(self) -> str:
         """Returns a string with collection statistics."""
         total = len(self.poems)
         filtered = len(self.filtered_poems)
-        if self.search_term or self.sort_by != "Recent":
+        if self.search_term or self.sort_by != "Oldest First":
             return f"Showing {filtered} of {total} poems"
         return f"{total} poems in collection"
 
@@ -160,7 +163,7 @@ class PoetryState(rx.State):
             notion = AsyncClient(auth=notion_token)
             db_query = await notion.databases.query(
                 database_id=self.database_id,
-                sorts=[{"property": "Date", "direction": "descending"}],
+                sorts=[{"property": "Date", "direction": "ascending"}],
             )
             tasks = [
                 self._process_page(notion, page) for page in db_query.get("results", [])
