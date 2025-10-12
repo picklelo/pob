@@ -197,9 +197,8 @@ class PoetryState(rx.State):
             self.error_message = ""
             self.selected_poem = None
         if not self.poems:
-            await self.fetch_poems()
-            async with self:
-                pass
+            yield PoetryState.fetch_poems
+            return
         try:
             async with self:
                 poem_data = next((p for p in self.poems if p["id"] == poem_id), None)
