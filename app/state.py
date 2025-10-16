@@ -108,6 +108,13 @@ class PoetryState(rx.State):
         return stanzas
 
     @rx.var
+    def poem_text_full(self) -> str:
+        """Returns the full poem text as a single string with newlines."""
+        return """
+
+""".join(self.poem_stanzas)
+
+    @rx.var
     def filtered_poems(self) -> list[Poem]:
         """Returns a list of poems filtered by search term and sorted."""
         poems_to_filter = [

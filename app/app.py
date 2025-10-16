@@ -96,16 +96,10 @@ def poem_detail_page() -> rx.Component:
                                     PoetryState.selected_poem["date"],
                                     class_name="opacity-100 transition-opacity text-md text-gray-500 mb-12 font-['Inter']",
                                 ),
-                                rx.el.div(
-                                    rx.foreach(
-                                        PoetryState.poem_stanzas,
-                                        lambda stanza: rx.el.p(
-                                            stanza,
-                                            class_name="text-xl text-[#F3F1EE]/80 font-['Inter'] whitespace-pre-line",
-                                            style={"lineHeight": 1.8},
-                                        ),
-                                    ),
-                                    class_name="space-y-6 max-w-none poem-fade-in",
+                                rx.el.pre(
+                                    PoetryState.poem_text_full,
+                                    class_name="text-xl text-[#F3F1EE]/80 font-['Inter'] whitespace-pre-wrap poem-fade-in",
+                                    style={"lineHeight": 1.8},
                                 ),
                             ),
                         ),
